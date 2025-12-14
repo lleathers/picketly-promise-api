@@ -263,6 +263,304 @@ For mission, narrative, and UI constraints, see the accompanying
 
 ---
 
+## 13. Organizer–Visitor–Promise Loop
+
+```
+┌─────────────────────────────────────────────┐
+│  Organizer / Seller / Founder               │
+│  (Public-interest institution builder)      │
+│                                             │
+│  • Declares mission                          │
+│  • Declares needs (roles, assets, capital)  │
+│  • Publishes opportunity cards               │
+│  • Defines acceptable promises               │
+│  • Sets artwork visibility rules             │
+└───────────────┬─────────────────────────────┘
+                │
+                │  (Infinite Upsell Funnel)
+                │
+                ▼
+┌─────────────────────────────────────────────┐
+│  Visitor / Citizen / Potential Contributor  │
+│                                             │
+│  • Encounters mission narrative              │
+│  • Sees existing promise artwork             │
+│  • Discovers multiple ways to contribute     │
+│    (money, labor, assets, governance)        │
+│                                             │
+│  → Self-selects a feasible commitment        │
+└───────────────┬─────────────────────────────┘
+                │
+                │  Promise Bid (gate-on-submit)
+                │
+                ▼
+┌─────────────────────────────────────────────┐
+│  Promise Submission                          │
+│                                             │
+│  • Promise payload submitted                 │
+│  • Email verified via magic link             │
+│  • Status: pending / submitted               │
+│                                             │
+│  • Enthusiasm captured immediately           │
+└───────────────┬─────────────────────────────┘
+                │
+                │
+                ▼
+┌─────────────────────────────────────────────┐
+│  Strategic Promise Artwork Exhibition        │
+│                                             │
+│  • Artwork associated with opportunity       │
+│  • Visibility enforced                       │
+│    (public / league / private)               │
+│                                             │
+│  • Social proof generated                    │
+│  • Organizer legitimacy increases            │
+└───────────────┬─────────────────────────────┘
+                │
+                │
+                ▼
+┌─────────────────────────────────────────────┐
+│  Institutional Reconfiguration               │
+│                                             │
+│  • Organizer adapts structure based on bids  │
+│  • Roles staffed                             │
+│  • Assets allocated                          │
+│  • Capital prioritized                       │
+│                                             │
+│  → New opportunities published               │
+└───────────────┴─────────────────────────────┘
+```
+
+### Key Insight (must be preserved)
+
+> **The institution is not designed first and funded second.
+> It is discovered through promises.**
+
+This loop is what makes the funnel *infinite* and the economy *adaptive*.
+
+---
+
+# (3) Promise Lifecycle (Canonical Definition)
+
+This section should be added **verbatim** to `picketly_context_packet_v1.md`, and summarized in `README.md`.
+
+---
+
+## Promise Lifecycle (Canonical)
+
+A **promise** in Picketly is not a payment.
+It is a *structured, inspectable, socially legible commitment*.
+
+The lifecycle below defines how promises move from enthusiasm to institutional utility.
+
+---
+
+### 1. Declaration (Organizer-Side)
+
+* Organizer defines:
+
+  * what is needed,
+  * what qualifies as an acceptable promise,
+  * what benefit or role is offered in exchange,
+  * what visibility options exist for attribution.
+* Opportunity cards encode this declaration.
+
+---
+
+### 2. Bid (Visitor-Side)
+
+* Visitor submits a promise bid through the upsell funnel.
+* Bid may represent:
+
+  * labor,
+  * access to assets,
+  * governance participation,
+  * patronage,
+  * or government currency.
+* No account creation is required at this stage.
+
+**Purpose:**
+Capture enthusiasm *without friction*.
+
+---
+
+### 3. Verification (Technical)
+
+* Email ownership verified via magic link.
+* Session established.
+* Promise enters the ledger with status:
+
+  * `pending_email_verification` → `submitted`.
+
+**Purpose:**
+Ensure the bidder is a real, reachable person without harvesting data.
+
+---
+
+### 4. Holding & Due Diligence (Organizational)
+
+* Promise is **held**, not immediately accepted.
+* Organizer assesses:
+
+  * feasibility,
+  * capacity,
+  * character (often through real-world participation).
+* Bidder may be invited into:
+
+  * volunteer roles,
+  * supervised hosting,
+  * probationary participation.
+
+**Critical Insight:**
+Due diligence is *experiential*, not form-based.
+
+---
+
+### 5. Provisional Exhibition (Optional)
+
+* Promise artwork may be exhibited:
+
+  * fully,
+  * partially,
+  * or anonymously,
+    according to bidder’s visibility choice.
+* Exhibition signals momentum without prematurely committing the organizer.
+
+---
+
+### 6. Acceptance, Rejection, or Revision
+
+* Organizer decides:
+
+  * **accept** → promise becomes part of institutional capacity,
+  * **reject** → bidder may revise or redirect effort,
+  * **revise** → promise terms renegotiated.
+
+---
+
+### 7. Performance & Redemption
+
+* Accepted promises are called upon when needed.
+* Organizer performs its reciprocal promise immediately upon acceptance
+  (e.g., role access, recognition, participation rights).
+
+---
+
+### 8. Commemoration & Legacy
+
+* Promise artwork remains part of:
+
+  * the founding ledger,
+  * historical record of the institution,
+  * ongoing exhibitions.
+* This reinforces long-term civic memory.
+
+---
+
+### Design Constraint
+
+> **A promise must never disappear silently.
+> Even rejected or revised promises must be acknowledged respectfully.**
+
+---
+
+# (4) Additional Picketly Innovations That MUST Be Preserved for Continuity
+
+This is the most important part of your question.
+
+Below are **innovations we developed implicitly** that future assistants *will miss* unless you name them explicitly.
+
+I strongly recommend adding these as a section titled
+**“Critical Picketly Innovations (Continuity List)”**
+inside `picketly_context_packet_v1.md`.
+
+---
+
+## Critical Picketly Innovations (Continuity List)
+
+### 1. Promise ≠ Payment
+
+Promises are *illiquid commitments* that require:
+
+* verification,
+* holding,
+* and judgment.
+
+They must never be treated as instant currency.
+
+---
+
+### 2. Enthusiasm Is a Perishable Asset
+
+The system is designed to:
+
+* capture enthusiasm immediately,
+* redirect it into action (volunteering, hosting),
+* even while due diligence is pending.
+
+**Time delay is the enemy.**
+
+---
+
+### 3. Due Diligence Is Performed in Reality
+
+Character is measured through:
+
+* supervised hosting,
+* real-world events,
+* observable behavior.
+
+Not Zoom interviews. Not resumes.
+
+---
+
+### 4. Promise Artwork Is Economic Infrastructure
+
+Artwork is not branding.
+It is:
+
+* incentive,
+* signaling,
+* and historical accounting.
+
+Removing it breaks the economy.
+
+---
+
+### 5. Infinite Funnels Enable Class-Inclusive Institutions
+
+Accepting only money:
+
+* excludes legitimate contributors,
+* biases institutions toward wealth,
+* and weakens civic legitimacy.
+
+Infinite funnels solve this.
+
+---
+
+### 6. Organizers Are Sellers *and* Stewards
+
+The organizer:
+
+* sells participation,
+* but also bears fiduciary responsibility
+  to manage promise risk responsibly.
+
+This dual role is intentional.
+
+---
+
+### 7. Visibility Is a Right, Not a Default
+
+Participants must control:
+
+* how their contributions are exhibited,
+* to whom,
+* and in what context.
+
+---
+
 **Picketly exists to prove that Citizens can still organize—
 not by shouting, but by committing, hosting, and building together.**
 
