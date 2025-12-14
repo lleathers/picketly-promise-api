@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: picketly-api
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set these in Render dashboard (secrets where appropriate):
+      # - DATABASE_URL
+      # - JWT_SECRET
+      # - APP_BASE_URL            (usually your Render service base URL)
+      # - FRONTEND_ALLOWED_ORIGINS (comma-separated ClickFunnels domains)
+      # - SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / FROM_EMAIL (optional; if omitted, magic links are logged)

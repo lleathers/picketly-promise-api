@@ -1,0 +1,49 @@
+{
+  "opportunities": [
+    {
+      "key": "city_team_owner",
+      "title": "Prospective City Team Owner (Founding League Tier)",
+      "subtitle": "Explore becoming a founding patron of the first generation of professional Classical Latin & Greek Music League teams in your city.",
+      "meta": "Indicative support: $25,000/year \u2022 Keywords: team owner, patron, governance, historic founding role.",
+      "categories": [
+        "professional"
+      ]
+    },
+    {
+      "key": "consular_patron",
+      "title": "Consular Patron \u2014 Curated Salons & Introductions",
+      "subtitle": "Underwrite early League and Conservatory operations while hosting unhurried salons, classical dinners, and curated introductions with other high-level contributors.",
+      "meta": "Indicative support: $5,000/month \u2022 Keywords: patron, salons, introductions, founding circle.",
+      "categories": [
+        "professional"
+      ]
+    },
+    {
+      "key": "cohort_runner_scholar",
+      "title": "Cohort Runner & Scholar (Founding Cohort)",
+      "subtitle": "Commit to a regular running-recitation practice, help test early training formats, and support the first generation of youth scholars who will study and perform.",
+      "meta": "Indicative support: time & presence \u2022 Keywords: running, study, recitation, founding cohort.",
+      "categories": [
+        "cohort"
+      ]
+    },
+    {
+      "key": "home_studio_host",
+      "title": "Home Studio / Practice Space Contributor",
+      "subtitle": "Share a reliable space where small groups can rehearse, study, or refine performances that will shape the League\u2019s founding seasons.",
+      "meta": "Indicative support: space & schedule \u2022 Keywords: rehearsal, conservatory, local infrastructure.",
+      "categories": [
+        "assets"
+      ]
+    },
+    {
+      "key": "volunteer_host_broker",
+      "title": "Volunteer Host & Introduction Broker (Running Events)",
+      "subtitle": "Help host and welcome runners and guests at early Picketly events. Your hospitality and introductions help define what the League\u2019s founding years feel like.",
+      "meta": "Indicative support: regular volunteer shifts \u2022 Keywords: hosting, introductions, promise brokerage, character in action.",
+      "categories": [
+        "volunteer"
+      ]
+    }
+  ]
+}

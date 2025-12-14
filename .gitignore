@@ -1,0 +1,107 @@
+########################################
+# Node / npm
+########################################
+
+# Installed dependencies
+node_modules/
+
+# npm / yarn / pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package manager artifacts (optional)
+.pnpm-store/
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+
+########################################
+# Environment & secrets
+########################################
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+# Render / cloud provider secrets
+.render/
+.render.yaml.local
+
+
+########################################
+# OS / editor cruft
+########################################
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+
+########################################
+# Build / cache artifacts
+########################################
+
+# Optional build output (not used now, but safe)
+dist/
+build/
+.tmp/
+.cache/
+
+
+########################################
+# Test & coverage output
+########################################
+
+coverage/
+.nyc_output/
+
+
+########################################
+# Database / runtime artifacts
+########################################
+
+# SQLite or local dev DBs (if ever used)
+*.sqlite
+*.sqlite3
+
+# Local uploads (future-proofing)
+uploads/
+tmp/
+
+
+########################################
+# Security
+########################################
+
+# Private keys & certs (never commit)
+*.pem
+*.key
+*.crt
+*.p12
+
+
+########################################
+# Misc
+########################################
+
+# Backup files
+*~
+
