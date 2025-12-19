@@ -1,171 +1,136 @@
-# Picketly Promise API
+# Picketly Promise API (Render) — Prototype “Infinite Upsell Funnel” Backend
 
-**Status:** Pilot / Founding Phase
-**Runtime:** Node.js (non-Docker)
-**Deployment:** Render Web Service
-**Primary Role:** Promise intake, validation, and attribution for the founding of the
-**Contemporary Classical Latin & Greek Music League**
+This repository is the **backend** for a prototype “infinite upsell funnel” hosted in **ClickFunnels**, with the API deployed as a **non-Docker Node Web Service on Render**.
 
----
+It implements the minimum production-grade mechanics needed to realize the invariants in `picketly_context_packet_v3.md`:
 
-## 1. Purpose & Mission Context
+- **Promises are conditional payment instruments** (become payment only upon seller acceptance).
+- **Seller-side artwork exhibition is granted only after acceptance** (endorsement/brokerage).
+- **Promise artwork is media-agnostic** (API stores metadata; media constraints are market-defined).
+- **Gate-on-submit** + **magic-link verification** to identify the bidder only when they submit.
 
-Picketly is a civic operating system that begins with **runners who care** and expands into an **American Revival** through the founding of the **Contemporary Classical Latin & Greek Music League**.
-
-This API exists to support:
-
-* **Gate-on-submit commitments** from visitors on ClickFunnels pages
-* **Magic-link authentication** that respects privacy and avoids forced accounts
-* **Promise intake and ledgering** (cash or non-cash promises)
-* **Visibility-aware promise artwork exhibition**
-* A durable record of the League’s **Founding Cohort**
-
-This service is intentionally:
-
-* privacy-first,
-* auditable,
-* conservative in trust assumptions,
-* and designed to scale gradually from a small NYC pilot.
+> Keep `picketly_context_packet_v3.md` in this repo (or a linked canonical repo) and treat it as binding for future changes.
 
 ---
 
-## 2. What This API Does (and Does Not Do)
+## What Runs Where
 
-### This API **does**
+### ClickFunnels (frontend host)
+- Renders the “infinite upsell funnel” page:
+  - hero badge filters
+  - opportunity cards
+  - form panel (desktop) / overlay (mobile)
+- Loads opportunities from a **remote JSON** file (editable without redeploying the API).
+- On submit: calls this API to create a **promise bid** and trigger **magic-link verification**.
 
-* Accept promise submissions tied to specific opportunities
-* Verify submitters via magic-link email
-* Maintain a session cookie for visibility rules
-* Serve opportunity metadata and promise artwork
-* Enforce rate limits to protect enthusiasm from abuse
-
-### This API **does not**
-
-* Handle payments directly (Stripe lives elsewhere)
-* Host frontend pages (ClickFunnels does)
-* Perform due diligence adjudication (human + event-based process)
-* Use third-party video platforms (WebRTC planned separately)
+### Render (backend host)
+- Runs this Node/Express service.
+- Connects to Postgres (Render Postgres or external).
+- Sends magic links (SMTP) or logs them for pilot testing.
 
 ---
 
-## 3. Architecture Overview
+## Repository Layout (expected)
+```bash
+api/
+server.js
 
-```
-ClickFunnels (UI)
-   |
-   |  POST /api/promises  (gate-on-submit)
-   v
-Picketly Promise API (this repo)
-   |
-   |-- Magic-link email verification
-   |-- Session cookie
-   |-- Promise ledger (Postgres)
-   |
-   |-- GET /api/opportunities
-   |-- GET /api/opportunities/:key/artwork
-   v
-Postgres (Render or external)
+data/
+opportunities.json              # optional local fallback (prototype)
+
+migrations/
+001_init.sql
+002_media_agnostic.sql
+003_artwork_exhibition.sql
+
+render.yaml                       # optional but recommended
+package.json
+README.md
 ```
 
-Static assets (CSS/JS/JSON) are hosted separately and consumed by ClickFunnels.
+**Important:** ClickFunnels JS/CSS is typically hosted separately as static assets
+(e.g., S3/R2/Cloudflare Pages/GitHub Pages). This repo is the **API**.
 
 ---
 
-## 4. Key Endpoints
+## API Contract (prototype)
 
 ### Health
+- `GET /health` → `{ ok: true }`
 
-```
-GET /health
-```
+### Opportunities (cards)
+- `GET /api/opportunities`
+- `GET /api/opportunities?category=professional`
 
-### Opportunities
+Used by the frontend to populate the left-side card list.
 
-```
-GET /api/opportunities
-GET /api/opportunities?category=professional
-```
+### Artwork (visibility-aware)
+- `GET /api/opportunities/:key/artwork`
 
-### Promise Artwork (visibility-aware)
+Returns promise artwork entries for an opportunity key, filtered by viewer session:
+- anonymous viewers: public only
+- logged-in viewers: public + league  
+(Private is reserved for later owner-only enforcement.)
 
-```
-GET /api/opportunities/:key/artwork
-```
+### Promise bid (gate-on-submit)
+- `POST /api/promises`
 
-### Submit a Promise (gate-on-submit)
+Creates a promise bid and triggers magic-link verification. This is the only time
+we require identity.
 
-```
-POST /api/promises
-```
-
-**Payload**
-
+Body:
 ```json
 {
-  "opportunity_key": "string",
-  "email": "string",
-  "full_name": "string",
-  "payload": {
-    "context": "optional free text",
-    "acknowledgement": "public | league | private"
-  }
+  "opportunity_key": "city_team_owner",
+  "email": "user@example.com",
+  "full_name": "Full Name",
+  "payload": { "anything": "the form collects" }
 }
 ```
 
-### Confirm Magic Link
+### Confirm magic link
 
+* `GET /api/promises/confirm?token=...`
+
+Verifies email, updates the promise status, and sets a session cookie.
+
+---
+
+## Database Setup (Postgres)
+
+Run the initial migration:
+
+```bash
+psql "$DATABASE_URL" -f migrations/001_init.sql
 ```
-GET /api/promises/confirm?token=...
-```
+
+Tables created:
+
+* `users`
+* `promises`
+* `artworks`
 
 ---
 
-## 5. Authentication & Privacy Model
+## Local Development
 
-* No forced accounts
-* No passwords
-* Magic-link email verification only
-* Secure HTTP-only session cookie
-* Visibility tiers for promise artwork:
-
-  * `public`
-  * `league`
-  * `private`
-
-Email input is **strictly validated** to avoid ambiguous parsing or injection.
-
----
-
-## 6. Rate Limiting (Abuse Prevention)
-
-To protect supporters and infrastructure:
-
-* Per-IP request limits
-* Per-email send limits
-* Cooldown between magic-link sends
-* In-memory limiter (sufficient for single-instance pilot)
-
-Upgrade path: Redis or Postgres-backed rate limits for multi-instance scaling.
-
----
-
-## 7. Local Development
-
-### Prerequisites
-
-* Node.js ≥ 18
-* Postgres (local or remote)
-
-### Install & Run
+### 1) Install
 
 ```bash
 npm install
-cp .env.example .env
-# edit .env with your values
+```
+
+### 2) Configure env
+
+Create `.env` from `.env.example` (do not commit `.env`).
+
+### 3) Run
+
+```bash
 npm start
 ```
 
-### Verify
+### 4) Verify
 
 ```bash
 curl http://localhost:4000/health
@@ -174,396 +139,180 @@ curl http://localhost:4000/api/opportunities
 
 ---
 
-## 8. Environment Variables
+## Environment Variables (Render)
 
 Required:
 
-```env
-NODE_ENV=production
-DATABASE_URL=postgres://...
-JWT_SECRET=long-random-string
-APP_BASE_URL=https://your-api.onrender.com
-FRONTEND_ALLOWED_ORIGINS=https://your-funnel-domain.com
+* `NODE_ENV=production`
+* `DATABASE_URL=...`
+* `JWT_SECRET=...` (long random string)
+* `APP_BASE_URL=https://YOUR-SERVICE.onrender.com`
+* `FRONTEND_ALLOWED_ORIGINS=https://YOUR_CLICKFUNNELS_DOMAIN`
+
+  * comma-separated list allowed
+
+Optional (SMTP email):
+
+* `SMTP_HOST`
+* `SMTP_PORT`
+* `SMTP_USER`
+* `SMTP_PASS`
+* `FROM_EMAIL`
+* `FROM_NAME`
+
+Rate limiting (recommended defaults):
+
+* `RATE_WINDOW_MS=600000` (10m)
+* `RATE_IP_MAX=20`
+* `RATE_EMAIL_MAX=5`
+* `RATE_EMAIL_COOLDOWN_MS=60000`
+
+---
+
+## Deploy to Render (Non-Docker)
+
+1. Render → **New** → **Web Service**
+2. Connect GitHub repo
+3. Runtime: **Node**
+4. Build Command: `npm install`
+5. Start Command: `npm start`
+6. Health Check Path: `/health`
+7. Add env vars (above)
+8. Attach Postgres and run migrations
+
+After deploy, confirm:
+
+* `GET https://YOUR-SERVICE.onrender.com/health`
+
+---
+
+## ClickFunnels Integration (prototype wiring)
+
+### A) Host your frontend assets
+
+Host these as static files somewhere public:
+
+* `design-system.css`
+* `funnel.js`
+* `opportunities.json` (remote, editable “cards database”)
+
+### B) ClickFunnels Custom HTML/JS block
+
+In ClickFunnels, paste your upsell HTML (the page shell) and include:
+
+```html
+<link rel="stylesheet" href="https://YOUR-ASSET-HOST/design-system.css" />
+
+<script>
+  window.PICKETLY = {
+    API_BASE: "https://YOUR-SERVICE.onrender.com",
+    OPPORTUNITIES_URL: "https://YOUR-ASSET-HOST/opportunities.json"
+  };
+</script>
+
+<script src="https://YOUR-ASSET-HOST/funnel.js"></script>
 ```
 
-Optional (email delivery):
+### C) CORS
 
-```env
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASS=
-FROM_EMAIL=no-reply@picketly.example
-FROM_NAME=Picketly
+Make sure `FRONTEND_ALLOWED_ORIGINS` includes the **exact** ClickFunnels origin(s)
+that will host the page, or the browser will block requests.
+
+---
+
+## How This Prototype Implements the v3 Canon (operationally)
+
+* **Infinite funnel:** opportunities are driven by `opportunities.json`, not hard-coded.
+  Add/remove/edit cards without redeploying the API.
+* **Gate-on-submit:** identity is requested only when submitting a promise bid.
+* **Promises as conditional payment instruments:** the API records bids and verification;
+  acceptance is a later organizational step (future endpoint/workflow).
+* **Seller-side exhibition only after acceptance:** this API supports artwork objects and
+  visibility filtering, but the organizer must only publish/associate seller-exhibited
+  artworks after acceptance.
+* **Media-agnostic artwork:** artworks are stored as records + references (URLs/text);
+  markets define acceptable media. Avoid hard-coding “image-only” assumptions.
+
+---
+
+## Operational Notes (prototype realism)
+
+* If SMTP is not configured, magic links are logged in Render logs (pilot convenience).
+* For multi-instance scaling, replace in-memory rate limits with Redis or Postgres-backed counters.
+* Stripe checkout is intentionally out-of-scope for this API; ClickFunnels/Stripe handles cash tiers.
+
+---
+
+## Change Control
+
+This repo is a prototype production backend. Changes that modify:
+
+* promise/payment semantics,
+* exhibition timing,
+* or artwork media constraints
+  must be reviewed against `picketly_context_packet_v3.md` before merging.
+
+---
+
+
+## Diagrammatic Explanation of the Picketly Relationship
+
+A. Conceptual Diagram (Plain English)
+```bash
+Citizens
+↓ make commitments (money, labor, assets, services)
+
+Organizer-Seller (League Founder / Leadership)
+↓ accepts, curates, coordinates commitments
+
+Picketly (Technical Contractor)
+↓ provides promise ledger, attribution, visibility, coordination tools
+
+Institution Takes Form
+→ Conservatory Network
+→ Professional League Teams
+→ Public Performances
 ```
 
-Rate-limit tuning (optional):
+B. Structural Diagram
+```yaml
+[ Citizens / Contributors ]
+        |
+        |  promises (money, labor, assets, services)
+        v
+[ Organizer-Seller ]
+(The League’s leadership)
+        |
+        |  acceptance criteria, mission, governance
+        v
+[ Contemporary Classical Latin & Greek Music League ]
+        |
+        |  talent requirements, performance standards
+        v
+[ Conservatory Network ]
+        |
+        |  trained performers
+        v
+[ Professional League Teams ]
+        |
+        |  public performances
+        v
+[ Civic & Cultural Impact ]
 
-```env
-RATE_WINDOW_MS=600000
-RATE_IP_MAX=20
-RATE_EMAIL_MAX=5
-RATE_EMAIL_COOLDOWN_MS=60000
+
+           ───────────────────────────────
+           |          Picketly           |
+           |    (Technical Contractor)   |
+           |-----------------------------|
+           | • Promise acceptance        |
+           | • Conditional accounting    |
+           | • Attribution & visibility. |
+           | • Coordination tooling      |
+           ───────────────────────────────
+
+Note:
+• Picketly supports Organizer-Sellers
+• Picketly does NOT govern the League
+• The League may change contractors
 ```
-
 ---
-
-## 9. Deployment to Render (Non-Docker)
-
-1. Create a new **Web Service**
-2. Runtime: **Node**
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Health check path: `/health`
-6. Add environment variables via Render dashboard
-7. Attach Postgres instance
-8. Deploy
-
-This repo includes a `render.yaml` for reference.
-
----
-
-## 10. Repository Structure
-
-```
-api/
-  server.js        # Express API
-data/
-  opportunities.json
-render.yaml
-package.json
-README.md
-.gitignore
-```
-
----
-
-## 11. Canonical Status & Continuity
-
-This repository represents the **canonical baseline** for:
-
-* promise ingestion,
-* magic-link verification,
-* and opportunity/artwork APIs.
-
-**Do not replace core flows casually.**
-Modify incrementally and document rationale.
-
-For mission, narrative, and UI constraints, see the accompanying
-`picketly_context_packet_v1.md`.
-
----
-
-## 12. Next Steps
-
-* Add SQL migrations (`migrations/001_init.sql`)
-* Integrate Stripe webhooks (separate service)
-* Add WebRTC due-diligence tooling
-* Expand promise brokerage accounting
-
----
-
-## 13. Organizer–Visitor–Promise Loop
-
-```
-┌─────────────────────────────────────────────┐
-│  Organizer / Seller / Founder               │
-│  (Public-interest institution builder)      │
-│                                             │
-│  • Declares mission                          │
-│  • Declares needs (roles, assets, capital)  │
-│  • Publishes opportunity cards               │
-│  • Defines acceptable promises               │
-│  • Sets artwork visibility rules             │
-└───────────────┬─────────────────────────────┘
-                │
-                │  (Infinite Upsell Funnel)
-                │
-                ▼
-┌─────────────────────────────────────────────┐
-│  Visitor / Citizen / Potential Contributor  │
-│                                             │
-│  • Encounters mission narrative              │
-│  • Sees existing promise artwork             │
-│  • Discovers multiple ways to contribute     │
-│    (money, labor, assets, governance)        │
-│                                             │
-│  → Self-selects a feasible commitment        │
-└───────────────┬─────────────────────────────┘
-                │
-                │  Promise Bid (gate-on-submit)
-                │
-                ▼
-┌─────────────────────────────────────────────┐
-│  Promise Submission                          │
-│                                             │
-│  • Promise payload submitted                 │
-│  • Email verified via magic link             │
-│  • Status: pending / submitted               │
-│                                             │
-│  • Enthusiasm captured immediately           │
-└───────────────┬─────────────────────────────┘
-                │
-                │
-                ▼
-┌─────────────────────────────────────────────┐
-│  Strategic Promise Artwork Exhibition        │
-│                                             │
-│  • Artwork associated with opportunity       │
-│  • Visibility enforced                       │
-│    (public / league / private)               │
-│                                             │
-│  • Social proof generated                    │
-│  • Organizer legitimacy increases            │
-└───────────────┬─────────────────────────────┘
-                │
-                │
-                ▼
-┌─────────────────────────────────────────────┐
-│  Institutional Reconfiguration               │
-│                                             │
-│  • Organizer adapts structure based on bids  │
-│  • Roles staffed                             │
-│  • Assets allocated                          │
-│  • Capital prioritized                       │
-│                                             │
-│  → New opportunities published               │
-└───────────────┴─────────────────────────────┘
-```
-
-### Key Insight (must be preserved)
-
-> **The institution is not designed first and funded second.
-> It is discovered through promises.**
-
-This loop is what makes the funnel *infinite* and the economy *adaptive*.
-
----
-
-# (3) Promise Lifecycle (Canonical Definition)
-
-This section should be added **verbatim** to `picketly_context_packet_v1.md`, and summarized in `README.md`.
-
----
-
-## Promise Lifecycle (Canonical)
-
-A **promise** in Picketly is not a payment.
-It is a *structured, inspectable, socially legible commitment*.
-
-The lifecycle below defines how promises move from enthusiasm to institutional utility.
-
----
-
-### 1. Declaration (Organizer-Side)
-
-* Organizer defines:
-
-  * what is needed,
-  * what qualifies as an acceptable promise,
-  * what benefit or role is offered in exchange,
-  * what visibility options exist for attribution.
-* Opportunity cards encode this declaration.
-
----
-
-### 2. Bid (Visitor-Side)
-
-* Visitor submits a promise bid through the upsell funnel.
-* Bid may represent:
-
-  * labor,
-  * access to assets,
-  * governance participation,
-  * patronage,
-  * or government currency.
-* No account creation is required at this stage.
-
-**Purpose:**
-Capture enthusiasm *without friction*.
-
----
-
-### 3. Verification (Technical)
-
-* Email ownership verified via magic link.
-* Session established.
-* Promise enters the ledger with status:
-
-  * `pending_email_verification` → `submitted`.
-
-**Purpose:**
-Ensure the bidder is a real, reachable person without harvesting data.
-
----
-
-### 4. Holding & Due Diligence (Organizational)
-
-* Promise is **held**, not immediately accepted.
-* Organizer assesses:
-
-  * feasibility,
-  * capacity,
-  * character (often through real-world participation).
-* Bidder may be invited into:
-
-  * volunteer roles,
-  * supervised hosting,
-  * probationary participation.
-
-**Critical Insight:**
-Due diligence is *experiential*, not form-based.
-
----
-
-### 5. Provisional Exhibition (Optional)
-
-* Promise artwork may be exhibited:
-
-  * fully,
-  * partially,
-  * or anonymously,
-    according to bidder’s visibility choice.
-* Exhibition signals momentum without prematurely committing the organizer.
-
----
-
-### 6. Acceptance, Rejection, or Revision
-
-* Organizer decides:
-
-  * **accept** → promise becomes part of institutional capacity,
-  * **reject** → bidder may revise or redirect effort,
-  * **revise** → promise terms renegotiated.
-
----
-
-### 7. Performance & Redemption
-
-* Accepted promises are called upon when needed.
-* Organizer performs its reciprocal promise immediately upon acceptance
-  (e.g., role access, recognition, participation rights).
-
----
-
-### 8. Commemoration & Legacy
-
-* Promise artwork remains part of:
-
-  * the founding ledger,
-  * historical record of the institution,
-  * ongoing exhibitions.
-* This reinforces long-term civic memory.
-
----
-
-### Design Constraint
-
-> **A promise must never disappear silently.
-> Even rejected or revised promises must be acknowledged respectfully.**
-
----
-
-# (4) Additional Picketly Innovations That MUST Be Preserved for Continuity
-
-This is the most important part of your question.
-
-Below are **innovations we developed implicitly** that future assistants *will miss* unless you name them explicitly.
-
-I strongly recommend adding these as a section titled
-**“Critical Picketly Innovations (Continuity List)”**
-inside `picketly_context_packet_v1.md`.
-
----
-
-## Critical Picketly Innovations (Continuity List)
-
-### 1. Promise ≠ Payment
-
-Promises are *illiquid commitments* that require:
-
-* verification,
-* holding,
-* and judgment.
-
-They must never be treated as instant currency.
-
----
-
-### 2. Enthusiasm Is a Perishable Asset
-
-The system is designed to:
-
-* capture enthusiasm immediately,
-* redirect it into action (volunteering, hosting),
-* even while due diligence is pending.
-
-**Time delay is the enemy.**
-
----
-
-### 3. Due Diligence Is Performed in Reality
-
-Character is measured through:
-
-* supervised hosting,
-* real-world events,
-* observable behavior.
-
-Not Zoom interviews. Not resumes.
-
----
-
-### 4. Promise Artwork Is Economic Infrastructure
-
-Artwork is not branding.
-It is:
-
-* incentive,
-* signaling,
-* and historical accounting.
-
-Removing it breaks the economy.
-
----
-
-### 5. Infinite Funnels Enable Class-Inclusive Institutions
-
-Accepting only money:
-
-* excludes legitimate contributors,
-* biases institutions toward wealth,
-* and weakens civic legitimacy.
-
-Infinite funnels solve this.
-
----
-
-### 6. Organizers Are Sellers *and* Stewards
-
-The organizer:
-
-* sells participation,
-* but also bears fiduciary responsibility
-  to manage promise risk responsibly.
-
-This dual role is intentional.
-
----
-
-### 7. Visibility Is a Right, Not a Default
-
-Participants must control:
-
-* how their contributions are exhibited,
-* to whom,
-* and in what context.
-
----
-
-**Picketly exists to prove that Citizens can still organize—
-not by shouting, but by committing, hosting, and building together.**
-
----
-
-

@@ -64,7 +64,7 @@ const transporter = hasSmtp
   ? nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT),
-      secure: false, // set true if using port 465
+      secure: true, // set true if using port 465
       auth: { user: SMTP_USER, pass: SMTP_PASS },
     })
   : null;
@@ -246,12 +246,13 @@ app.get("/api/opportunities/:key/artwork", requireConfiguredDb, async (req, res)
     const visibility = viewer?.userId ? ["public", "league"] : ["public"];
 
     const { rows } = await pool.query(
-      `SELECT id, type, title, visibility, content_url, content_text, created_at
-       FROM artworks
-       WHERE opportunity_key = $1 AND visibility = ANY($2)
-       ORDER BY created_at DESC
-       LIMIT 30`,
-      [key, visibility]
+      `SELECT id, type, title, content_url, content_text, content_json
+      FROM artworks
+      WHERE opportunity_key = $1
+        AND exhibited_by = 'seller'
+        AND exhibit_status IN ('accepted','acknowledged')
+      ORDER BY created_at DESC
+      LIMIT 30`
     );
 
     res.json({ artworks: rows });
