@@ -78,17 +78,15 @@ app.use(cookieParser());
 app.set("trust proxy", 1);
 
 // CORS: if no origins specified, default deny cross-origin credentials
-app.use(
-  cors({
-    origin: function (origin, cb) {
-      // Allow same-origin / server-to-server (no Origin header)
-      if (!origin) return cb(null, true);
-      if (FRONTEND_ALLOWED_ORIGINS.length === 0) return cb(null, false);
-      return cb(null, FRONTEND_ALLOWED_ORIGINS.includes(origin));
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: function (origin, cb) {
+    if (!origin) return cb(null, true);
+    if (FRONTEND_ALLOWED_ORIGINS.length === 0) return cb(null, true); // prototype-friendly
+    return cb(null, FRONTEND_ALLOWED_ORIGINS.includes(origin));
+  },
+  credentials: true,
+}));
+app.options("*", cors());
 
 function sendError(res, status, message) {
   return res.status(status).json({ error: message });
@@ -246,18 +244,20 @@ app.get("/api/opportunities/:key/artwork", requireConfiguredDb, async (req, res)
     const visibility = viewer?.userId ? ["public", "league"] : ["public"];
 
     const { rows } = await pool.query(
-      `SELECT id, type, title, content_url, content_text, content_json
-      FROM artworks
-      WHERE opportunity_key = $1
-        AND exhibited_by = 'seller'
-        AND exhibit_status IN ('accepted','acknowledged')
-      ORDER BY created_at DESC
-      LIMIT 30`
+      `SELECT id, type, title, visibility, content_url, content_text, content_json, created_at
+       FROM artworks
+       WHERE opportunity_key = $1
+         AND visibility = ANY($2)
+         AND exhibited_by = 'seller'
+         AND exhibit_status = ANY($3)
+       ORDER BY created_at DESC
+       LIMIT 30`,
+      [key, visibility, ["accepted", "acknowledged"]]
     );
 
     res.json({ artworks: rows });
   } catch (err) {
-    console.error(err);
+    console.error("Artwork query failed:", err);
     sendError(res, 500, "Failed to load artwork.");
   }
 });
