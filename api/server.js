@@ -415,8 +415,9 @@ app.get(
 
       setSessionCookie(res, { userId });
 
-      // Redirect to a thank-you page you control.
-      res.redirect(`${APP_BASE_URL}/thank-you`);
+      const FRONTEND_THANK_YOU_URL = process.env.FRONTEND_THANK_YOU_URL || "";
+      // Redirect to ClickFunnels after verification
+      res.redirect(FRONTEND_THANK_YOU_URL || `${APP_BASE_URL}/thank-you`);
     } catch (err) {
       console.error(err);
       try {
