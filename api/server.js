@@ -126,7 +126,7 @@ app.get("/api/opportunities/:key/artwork", requireConfiguredDb, async (req, res)
     const visibility = viewer?.userId ? ["public", "league"] : ["public"];
     
     const { rows } = await pool.query(
-      `SELECT id, type, title, visibility, content_url, content_text, created_at
+      `SELECT id, type, title, visibility, content_url, content_text, content_json, created_at
        FROM artworks
        WHERE opportunity_key = $1
        AND visibility = ANY($2)
