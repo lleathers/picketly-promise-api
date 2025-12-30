@@ -33,7 +33,8 @@ const pool = DATABASE_URL
     })
   : null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "Picketly <no-reply@picketly.example>";
+const FROM_EMAIL = process.env.FROM_EMAIL || "Picketly <promises@picketly.com>";
+const FROM_NAME = process.env.FROM_NAME || "Picketly";
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT;
 const SMTP_USER = process.env.SMTP_USER;
