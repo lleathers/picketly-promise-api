@@ -46,6 +46,7 @@ const transporter = hasSmtp
       port: Number(SMTP_PORT),
       secure: false,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      requireTLS: true
     })
   : null;
 
@@ -223,6 +224,21 @@ app.get("/api/promises/confirm", requireConfiguredDb, requireJwtSecret, async (r
     console.error(err);
     try { await pool.query("ROLLBACK"); } catch {}
     return sendError(res, 400, "Invalid or expired token.");
+  }
+});
+
+app.get("/test-email", async (req, res) => {
+  try {
+    await transporter.sendMail({
+      from: { name: FROM_NAME, address: FROM_EMAIL },
+      to: "admin@picketly.com",
+      subject: "SES Test",
+      text: "If you received this, SES is working."
+    });
+    res.send("Email sent");
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Failed");
   }
 });
 
