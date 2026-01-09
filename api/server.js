@@ -218,8 +218,13 @@ app.get("/api/promises/confirm", requireConfiguredDb, requireJwtSecret, async (r
 
     setSessionCookie(res, { userId });
 
+
     if (!FRONTEND_THANK_YOU_URL) return sendError(res, 500, "FRONTEND_THANK_YOU_URL not configured.");
-    res.redirect(FRONTEND_THANK_YOU_URL);
+    const url = new URL(FRONTEND_THANK_YOU_URL);
+    url.searchParams.set("flow", "promise");
+    url.searchParams.set("state", "submitted");
+    url.searchParams.set("promise_id", promiseId);
+    res.redirect(url.toString());
     
   } catch (err) {
     console.error(err);
