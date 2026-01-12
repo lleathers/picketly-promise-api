@@ -171,23 +171,36 @@ app.post("/api/promises", requireConfiguredDb, requireJwtSecret, async (req, res
        VALUES ($1, $2, false)
        ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name
        RETURNING id`,
-      [email, full_name]
+      [String(email).trim().toLowerCase(), full_name]
     );
     const user = userResult.rows[0];
 
     const promiseResult = await pool.query(
       `INSERT INTO promises (user_id, opportunity_key, status, payload)
        VALUES ($1, $2, 'pending_email_verification', $3)
-       RETURNING id, created_at`,
+       ON CONFLICT (user_id, opportunity_key)
+         WHERE status IN ('pending_email_verification','submitted','accepted')
+       DO UPDATE
+         SET payload = EXCLUDED.payload,
+             updated_at = now()
+       RETURNING id, created_at, status`,
       [user.id, opportunity_key, payload]
     );
     const promise = promiseResult.rows[0];
+
+    // If already confirmed, do NOT send another email.
+    if (promise.status !== "pending_email_verification") {
+      return res.json({
+        promise: { id: promise.id, status: promise.status, opportunity_key, created_at: promise.created_at },
+        message: "Already confirmed.",
+     });
+    }
 
     const magicToken = jwt.sign({ userId: user.id, promiseId: promise.id }, JWT_SECRET, {
       expiresIn: MAGIC_LINK_EXPIRY,
     });
 
-    const confirmUrl = `${req.protocol}://${req.get("host")}/api/promises/confirm?token=${encodeURIComponent(magicToken)}`;
+    const confirmUrl = `${APP_BASE_URL}/api/promises/confirm?token=${encodeURIComponent(magicToken)}`;
 
     if (transporter) {
       await transporter.sendMail({
