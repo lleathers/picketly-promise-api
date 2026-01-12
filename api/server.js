@@ -41,13 +41,24 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 
 const hasSmtp = Boolean(SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS);
+const SMTP_SECURE = String(process.env.SMTP_SECURE || "").toLowerCase() === "true"; // true for 465, false for 587
 const transporter = hasSmtp
   ? nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT),
-      secure: false,
+      secure: SMTP_SECURE,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
-      requireTLS: true
+      requireTLS: !SMTP_SECURE,
+
+      // Reuse connections to reduce perceived latency on mobile
+      pool: true,
+      maxConnections: 2,
+      maxMessages: 100,
+
+      // Fail fast instead of hanging the request
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
     })
   : null;
 
